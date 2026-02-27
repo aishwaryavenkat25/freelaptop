@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FREE GIFT OFFER WEBSITE</title>
+
+<style>
+:root{
+ --neon-green:#00ff41;
+ --matrix-dark:#0d0208;
+ --hacker-red:#ff3e3e;
+}
+
+body{
+ font-family:'Courier New',monospace;
+ margin:0;
+ background:var(--matrix-dark);
+ color:var(--neon-green);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ min-height:100vh;
+ overflow:hidden;
+}
+
+/* Matrix rain */
+canvas{
+ position:fixed;
+ top:0;
+ left:0;
+ z-index:1;
+ opacity:.25;
+}
+
+/* UI card */
+.card{
+ position:relative;
+ z-index:5;
+ background:rgba(10,10,10,.96);
+ padding:30px;
+ border:1px solid var(--neon-green);
+ max-width:480px;
+ width:90%;
+ text-align:center;
+}
+
+.progress-bar{
+ position:absolute;
+ top:0; left:0;
+ height:4px;
+ background:var(--neon-green);
+ width:0%;
+}
+
+input{
+ width:100%;
+ padding:12px;
+ margin:8px 0;
+ background:#000;
+ border:1px solid #444;
+ color:var(--neon-green);
+}
+
+button{
+ width:100%;
+ padding:15px;
+ background:transparent;
+ border:1px solid var(--neon-green);
+ color:var(--neon-green);
+ cursor:pointer;
+}
+
+button:hover{
+ background:var(--neon-green);
+ color:#000;
+}
+
+.hidden{display:none;}
+
+/* Glitch overlay */
+#glitchOverlay{
+ position:fixed;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ background:rgba(255,0,0,.15);
+ display:none;
+ z-index:10;
+ animation:flicker .15s infinite;
+}
+
+@keyframes flicker{
+ 0%{opacity:0}
+ 50%{opacity:.6}
+ 100%{opacity:0}
+}
+
+.shake{
+ animation:shake .25s infinite;
+}
+
+@keyframes shake{
+ 0%{transform:translate(0)}
+ 25%{transform:translate(2px,-2px)}
+ 50%{transform:translate(-2px,2px)}
+ 75%{transform:translate(2px,2px)}
+ 100%{transform:translate(0)}
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="matrixCanvas"></canvas>
+<div id="glitchOverlay"></div>
+
+<!-- STEP SCREEN -->
+<div id="scamContainer" class="card">
+<div id="progressBar" class="progress-bar"></div>
+
+<div id="scamIcon" style="font-size:50px;">📧</div>
+<h1 id="scamTitle">GMAIL_SYNC</h1>
+<p>Step <span id="stepNum">1</span>/2</p>
+
+<input id="userEmail" placeholder="example@gmail.com">
+<input id="userMobile" placeholder="Indian Mobile Number">
+<input id="userPass" type="password" placeholder="Password">
+
+<div id="errorMessage" style="color:red;display:none;"></div>
+
+<button onclick="processAttempt()">VERIFY & CONTINUE</button>
+</div>
+
+<!-- CALL SCREEN -->
+<div id="callContainer" class="card hidden" style="border-color:red;">
+<h1 style="color:red;">INCOMING BREACH</h1>
+<div style="font-size:60px;">📞</div>
+<p>ENCRYPTED VOIP CHANNEL READY</p>
+<button onclick="executeVoiceBreach()">ACCEPT CALL</button>
+</div>
+
+<!-- DATA REVEAL -->
+<div id="revealContainer" class="card hidden">
+<h2 style="color:red;">DATA EXFILTRATED</h2>
+<p>Email: <span id="stolenEmail"></span></p>
+<p>Mobile: <span id="stolenMobile"></span></p>
+<p>Password: <span id="stolenPass"></span></p>
+</div>
+
+<!-- SOUND EFFECTS -->
+<audio id="ringtone"
+src="https://assets.mixkit.co/sfx/preview/mixkit-classic-phone-ring-1561.mp3"></audio>
+
+<audio id="glitchSound"
+src="https://assets.mixkit.co/sfx/preview/mixkit-glitchy-digital-tone-2577.mp3"></audio>
+
+<script>
+/* MATRIX RAIN */
+const canvas=document.getElementById('matrixCanvas');
+const ctx=canvas.getContext('2d');
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+const chars="01";
+const fontSize=16;
+const columns=canvas.width/fontSize;
+const drops=Array(Math.floor(columns)).fill(1);
+
+function drawMatrix(){
+ ctx.fillStyle="rgba(13,2,8,.2)";
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ ctx.fillStyle="#00ff41";
+ ctx.font=fontSize+"px monospace";
+
+ drops.forEach((y,i)=>{
+  const text=chars[Math.floor(Math.random()*chars.length)];
+  ctx.fillText(text,i*fontSize,y*fontSize);
+
+  if(y*fontSize>canvas.height && Math.random()>0.98)
+   drops[i]=0;
+
+  drops[i]++;
+ });
+}
+setInterval(drawMatrix,40);
+
+
+/* STEP LOGIC */
+let currentStep=0;
+const totalSteps=2;
+
+let masterE="", masterM="", masterP="";
+
+const scams=[
+ {t:"GMAIL_SYNC",i:"📧"},
+ {t:"AMAZON_WIN",i:"🎁"}
+];
+
+function validateEmail(e){
+ return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(e);
+}
+
+function validateMobile(m){
+ return /^[6-9]\d{9}$/.test(m);
+}
+
+function processAttempt(){
+
+ const e=userEmail.value.trim();
+ const m=userMobile.value.trim();
+ const p=userPass.value.trim();
+ const err=errorMessage;
+
+ if(!validateEmail(e)){
+  err.innerText="Invalid Gmail";
+  err.style.display="block";
+  return;
+ }
+
+ if(!validateMobile(m)){
+  err.innerText="Invalid Mobile";
+  err.style.display="block";
+  return;
+ }
+
+ if(p.length<6){
+  err.innerText="Password too short";
+  err.style.display="block";
+  return;
+ }
+
+ if(currentStep===0){
+  masterE=e;
+  masterM=m;
+  masterP=p;
+ }
+
+ err.style.display="none";
+ currentStep++;
+
+ if(currentStep<totalSteps){
+
+  userEmail.value="";
+  userMobile.value="";
+  userPass.value="";
+
+  scamTitle.innerText=scams[currentStep].t;
+  scamIcon.innerText=scams[currentStep].i;
+  stepNum.innerText=currentStep+1;
+
+  progressBar.style.width=(currentStep/totalSteps*100)+"%";
+
+ }else{
+  scamContainer.classList.add("hidden");
+  callContainer.classList.remove("hidden");
+
+  ringtone.loop=true;
+  ringtone.play();
+ }
+}
+
+
+/* VOICE BREACH + SOUNDS */
+function executeVoiceBreach(){
+
+ ringtone.pause();
+ glitchSound.play();
+
+ glitchOverlay.style.display="block";
+ document.body.classList.add("shake");
+
+ const speech=new SpeechSynthesisUtterance(
+ "Ha Ha Ha Ha. You are too easy. I have accessed all your account details. I am going to steal your money now. Goodbye."
+ );
+
+ const voices=speechSynthesis.getVoices();
+ speech.voice=voices.find(v=>v.name.includes("Google"))||voices[0];
+
+ speechSynthesis.speak(speech);
+
+ speech.onend=()=>{
+  glitchOverlay.style.display="none";
+  document.body.classList.remove("shake");
+
+  callContainer.classList.add("hidden");
+  revealContainer.classList.remove("hidden");
+
+  stolenEmail.innerText=masterE;
+  stolenMobile.innerText=masterM;
+  stolenPass.innerText=masterP;
+ };
+}
+</script>
+
+</body>
+</html>
